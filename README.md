@@ -1,7 +1,10 @@
 # Run Instructions for JSCCA
 
-This project contains a standalone JSCCA implementation in:
+Joint sparse canonical correlation analysis (jsCCA): To identify linear aggregative patterns from multimodal omics data.
 
+For more information, please refer to the paper: (Identifying genes associated with disease outcomes using joint sparse canonical correlation analysis-An application in renal clear cell carcinoma)[https://pubmed.ncbi.nlm.nih.gov/38751238/]
+
+The standalone primary function is: 
 - `jscca.R`
 
 and a runnable vignette in:
@@ -65,13 +68,7 @@ fit$selected_w
 fit$selected_v
 ```
 
-## 3) Run via Rscript (non-interactive)
-
-```bash
-Rscript -e "source('jscca.R'); set.seed(1); n<-100; p<-40; q<-50; r<-45; C<-matrix(rnorm(n*p),n,p); M<-matrix(rnorm(n*q),n,q); E<-matrix(rnorm(n*r),n,r); fit<-jscca_fit(C,M,E,ncomp=2,lambda_u=5,lambda_w=6,lambda_v=5,deflation='submatrix_uv'); print(fit$q_cm); print(fit$q_me)"
-```
-
-## 4) Render the Vignette
+## 3) Render the Vignette
 
 From project root:
 
@@ -81,7 +78,7 @@ Rscript -e "rmarkdown::render('vignettes/jscca_vignette.Rmd', output_file='jscca
 
 This creates `vignettes/jscca_vignette.html`.
 
-## 5) Main Arguments
+## 4) Main Arguments
 
 - `ncomp`: maximum number of components.
 - `lambda_u`, `lambda_w`, `lambda_v`: sparsity bounds.
@@ -98,7 +95,7 @@ This creates `vignettes/jscca_vignette.html`.
   - `"alternating"`: newest-available updates each cycle.
 - `standardize`: if `TRUE`, z-score columns before fitting.
 
-## 6) Output Structure
+## 5) Output Structure
 
 `jscca_fit()` returns a list with:
 
