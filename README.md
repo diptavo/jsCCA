@@ -2,7 +2,7 @@
 
 Joint sparse canonical correlation analysis (jsCCA): To identify linear aggregative patterns from multimodal omics data.
 
-For more information, please refer to the paper: (Identifying genes associated with disease outcomes using joint sparse canonical correlation analysis-An application in renal clear cell carcinoma)[https://pubmed.ncbi.nlm.nih.gov/38751238/]
+For more information, please refer to the paper: [Identifying genes associated with disease outcomes using joint sparse canonical correlation analysis-An application in renal clear cell carcinoma](https://pubmed.ncbi.nlm.nih.gov/38751238/)
 
 The standalone primary function is: 
 - `jscca.R`
