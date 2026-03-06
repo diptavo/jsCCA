@@ -1,1 +1,126 @@
+---
+title: "JSCCA Vignette"
+author: "Project"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+---
 
+## Overview
+
+This vignette demonstrates how to run the JSCCA implementation in
+`jscca.R` using synthetic data.
+
+The implementation follows the update/deflation scheme from:
+
+- Dutta D, Sen A, Satagopan JM (2024), *Genetic Epidemiology*
+- Paper: <https://pmc.ncbi.nlm.nih.gov/articles/PMC11589067/>
+
+## 1) Load Functions
+
+```{r setup}
+source("../jscca.R")
+set.seed(2026)
+```
+
+If your working directory is the project root, `../jscca.R` is correct when
+knitting this file from `vignettes/`.
+
+## 2) Simulate Data
+
+```{r simulate}
+n <- 150
+p <- 60   # CNA features
+q <- 80   # Methylation features
+r <- 70   # Gene expression features
+
+C <- matrix(rnorm(n * p), nrow = n, ncol = p)
+M <- matrix(rnorm(n * q), nrow = n, ncol = q)
+E <- matrix(rnorm(n * r), nrow = n, ncol = r)
+
+# Add a weak shared latent structure to make signal visible
+z <- scale(rnorm(n))
+C[, 1:3] <- C[, 1:3] + 0.6 * z
+M[, 5:8] <- M[, 5:8] + 0.6 * z
+E[, 2:4] <- E[, 2:4] + 0.6 * z
+```
+
+## 3) Fit JSCCA (Hotelling Deflation)
+
+```{r fit-hotelling}
+fit_hotelling <- jscca_fit(
+  C = C,
+  M = M,
+  E = E,
+  ncomp = 3,
+  lambda_u = 6,
+  lambda_w = 8,
+  lambda_v = 7,
+  deflation = "hotelling",
+  update_mode = "paper",
+  standardize = TRUE,
+  tol = 1e-6,
+  max_iter = 500,
+  verbose = TRUE
+)
+
+fit_hotelling$q_cm
+fit_hotelling$q_me
+fit_hotelling$converged
+```
+
+## 4) Fit JSCCA (Sub-Matrix Deflation by non-zero u and v)
+
+This mode removes selected CNA and gene-expression variables between
+components (while keeping methylation space intact).
+
+```{r fit-submatrix}
+fit_submatrix <- jscca_fit(
+  C = C,
+  M = M,
+  E = E,
+  ncomp = 3,
+  lambda_u = 6,
+  lambda_w = 8,
+  lambda_v = 7,
+  deflation = "submatrix_uv",
+  update_mode = "paper",
+  standardize = TRUE,
+  tol = 1e-6,
+  max_iter = 500,
+  verbose = TRUE
+)
+
+fit_submatrix$q_cm
+fit_submatrix$q_me
+fit_submatrix$converged
+```
+
+## 5) Inspect Selected Variables
+
+Selected indices are returned in original feature indexing.
+
+```{r inspect}
+fit_submatrix$selected_u
+fit_submatrix$selected_w
+fit_submatrix$selected_v
+```
+
+You can also inspect full loading vectors:
+
+```{r loadings}
+dim(fit_submatrix$U)  # p x ncomp
+dim(fit_submatrix$W)  # q x ncomp
+dim(fit_submatrix$V)  # r x ncomp
+```
+
+## 6) Notes on Tuning
+
+- `lambda_u`, `lambda_w`, `lambda_v` control sparsity.
+- Smaller lambda generally increases sparsity after thresholding.
+- `ncomp` is the maximum extracted components; extraction may stop early if
+  active submatrices become empty in `submatrix_uv` mode.
+- `update_mode = "paper"` uses the appendix-style previous-iterate updates.
+  `"alternating"` uses newest-available updates in each cycle.
